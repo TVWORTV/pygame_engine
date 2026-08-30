@@ -1,0 +1,67 @@
+
+#region Import
+
+import pygame
+import asyncio
+
+
+from engine.scenes.scene import *
+
+from engine.constants.consts import * 
+
+#endregion
+
+#region Pygame default
+
+pygame.mixer.pre_init(44100, -16, 2, 4096)  #  8192 
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption(GAME_NAME)
+clock = pygame.time.Clock()
+FPS = 60
+
+#endregion 
+
+#region Initialization 
+
+
+#endregion 
+
+#region Scenes 
+
+class MainMenuScene(Scene):
+    pass
+
+sceneManager = SceneManager(
+    scene_classes={
+        "main": MainMenuScene, 
+    }, 
+start_scene= "main"
+)
+
+#endregion 
+
+
+async def main():
+    running = True
+
+    while running:
+        events = pygame.event.get()
+
+        for event in events:
+            if event.type == pygame.QUIT:
+                running = False
+
+        screen.fill((25, 25, 35))
+        dt = clock.tick(FPS) / 1000.0
+
+        sceneManager.handle_events(events)
+        sceneManager.update(dt)
+        sceneManager.draw(screen)
+
+        pygame.display.flip()
+        await asyncio.sleep(0)  
+
+    pygame.quit()
+
+asyncio.run(main())
