@@ -1,5 +1,4 @@
 import pygame
-from general.singleton import * 
 
 class Assets:
     _images = {}

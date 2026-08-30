@@ -1,6 +1,3 @@
-from engineStructures.singleton import Singleton
-
-
 class Scene:
     def __init__(self, manager):
         self.manager = manager

@@ -1,0 +1,47 @@
+
+
+
+
+{
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/*.pyo": true,
+
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+
+        "**/*.egg-info": true,
+        "**/build": true,
+        "**/dist": true,
+        
+        "**/*.gitignore": true,
+
+        "**/.pytest_cache": true,
+        "**/.mypy_cache": true,
+        "**/.coverage": true,
+        "**/htmlcov": true
+    },
+
+    "search.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/*.gitignore": true,
+        "**/assets/**": true 
+    },
+
+    "files.watcherExclude": {
+        "**/__pycache__/**": true,
+        "**/.venv/**": true,
+        "**/venv/**": true
+    },
+
+    "files.associations": {
+        "*.tmx": "xml",
+        "*.tsx": "xml"
+    },
+
+    "python.analysis.exclude": [
+        "**/__pycache__"
+    ]
+}
