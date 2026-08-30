@@ -1,3 +1,6 @@
+import pygame
+
+
 class SceneObject:
     def __init__(self):
         self.children = []
@@ -5,6 +8,61 @@ class SceneObject:
         self.scene = None
         self._sortedChildren = []
         self._drawOrderDirty = False
+
+        self.position = pygame.math.Vector2(0, 0)   # local, relative to parent
+        self.rotation = 0.0                            # local, degrees (+ = clockwise on screen)
+
+        self._worldPosition = pygame.math.Vector2(0, 0)
+        self._worldRotation = 0.0
+        self._worldDirty = True
+
+#region Positioning
+
+    def setPosition(self, pos):
+        self.position = pygame.math.Vector2(pos)
+        self._invalidateWorldTransform()
+
+    def setRotation(self, rotation):
+        self.rotation = rotation
+        self._invalidateWorldTransform()
+
+    def translate(self, delta):
+        self.position += pygame.math.Vector2(delta)
+        self._invalidateWorldTransform()
+
+    def rotate(self, deltaDegrees):
+        self.rotation += deltaDegrees
+        self._invalidateWorldTransform()
+
+    def getWorldPosition(self):
+        self._updateWorldTransform()
+        return self._worldPosition
+
+    def getWorldRotation(self):
+        self._updateWorldTransform()
+        return self._worldRotation
+
+    def _updateWorldTransform(self):
+        if not self._worldDirty:
+            return
+
+        if self.parent is None:
+            self._worldPosition = pygame.math.Vector2(self.position)
+            self._worldRotation = self.rotation
+        else:
+            parentPos = self.parent.getWorldPosition()
+            parentRot = self.parent.getWorldRotation()
+            self._worldPosition = parentPos + self.position.rotate(parentRot)
+            self._worldRotation = parentRot + self.rotation
+
+        self._worldDirty = False
+
+    def _invalidateWorldTransform(self):
+        self._worldDirty = True
+        for child in self.children:
+            child._invalidateWorldTransform()
+
+#endregion
 
 #region hierarchy
 
@@ -18,6 +76,7 @@ class SceneObject:
         obj.parent = self
         self.children.append(obj)
         self._drawOrderDirty = True
+        obj._invalidateWorldTransform()
 
         if self.scene is not None:
             obj.onAddedToScene(self.scene)
@@ -29,6 +88,7 @@ class SceneObject:
         self.children.remove(obj)
         obj.parent = None
         self._drawOrderDirty = True
+        obj._invalidateWorldTransform()
 
         if self.scene is not None:
             obj.onRemovedFromScene(self.scene)

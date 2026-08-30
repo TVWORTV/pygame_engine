@@ -9,8 +9,7 @@ class UIBar(SceneObject):
                  currentValue=0.0, maxValue=1.0, worldSpace=False):
         super().__init__()
 
-        self.x = x
-        self.y = y
+        self.setPosition((x, y))
         self.width = width
         self.height = height
         self.border = border
@@ -22,18 +21,22 @@ class UIBar(SceneObject):
         self.bgImage = None
         if backgroundImage is not None:
             self.bgImage = StaticImage(
-                backgroundImage, (self.x, self.y), size=(self.width, self.height),
+                backgroundImage, (0, 0), size=(self.width, self.height),
                 nineSliced=bgNineSlicing, border=self.border
             )
             self.addChild(self.bgImage)
 
         self.fillImage = StaticImage(
-            foregroundImage, (self.x, self.y), size=(self.width, self.height),
+            foregroundImage, (0, 0), size=(self.width, self.height),
             nineSliced=True, border=self.border
         )
         self.addChild(self.fillImage)
 
 #region Background / sizing
+
+    def getRect(self):
+        worldPos = self.getWorldPosition()
+        return pygame.Rect(worldPos.x, worldPos.y, self.width, self.height)
 
     def setSize(self, width, height):
         self.width = width
@@ -64,17 +67,19 @@ class UIBar(SceneObject):
             self.bgImage.draw(screen)
 
         ratio = self.getFillRatio()
-        fill_width = round(self.width * ratio)
-        if fill_width <= 0:
+        fillWidth = round(self.width * ratio)
+        if fillWidth <= 0:
             return
 
-        clip_rect = pygame.Rect(self.x, self.y, fill_width, self.height)
-        prev_clip = screen.get_clip()
-        screen.set_clip(clip_rect)
+        rect = self.getRect()
+        # Clip is axis-aligned - see notes on rotation limitations.
+        clipRect = pygame.Rect(rect.x, rect.y, fillWidth, rect.height)
+        prevClip = screen.get_clip()
+        screen.set_clip(clipRect)
 
         self.fillImage.draw(screen)
 
-        screen.set_clip(prev_clip)
+        screen.set_clip(prevClip)
 
         for child in self.children:
             if child is not self.bgImage and child is not self.fillImage:

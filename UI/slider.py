@@ -10,25 +10,18 @@ class Handle(SceneObject):
 
         self.width = width
         self.height = height
-        self.x = 0
-        self.y = 0
         self.dragging = False
         self.hovered = False
         self.worldSpace = worldSpace
 
         self.image = None
         if image is not None:
-            self.image = StaticImage(image, (self.x, self.y), size=(self.width, self.height))
+            self.image = StaticImage(image, (0, 0), size=(self.width, self.height))
             self.addChild(self.image)
 
     def getRect(self):
-        return pygame.Rect(self.x, self.y, self.width, self.height)
-
-    def setPosition(self, x, y):
-        self.x = x
-        self.y = y
-        if self.image is not None:
-            self.image.setPos((x, y))
+        worldPos = self.getWorldPosition()
+        return pygame.Rect(worldPos.x, worldPos.y, self.width, self.height)
 
     def draw(self, screen):
         if self.image is None:
@@ -44,9 +37,10 @@ class UISlider(SceneObject):
                  backgroundImage=None, bgNineSlicing=False,
                  currentValue=0.0, maxValue=1.0, onChange=None, worldSpace=False):
         super().__init__()
+        self.setPosition((x, y))
 
         self.bar = UIBar(
-            x, y, width, height, foregroundImage, border,
+            0, 0, width, height, foregroundImage, border,
             backgroundImage=backgroundImage, bgNineSlicing=bgNineSlicing,
             currentValue=currentValue, maxValue=maxValue
         )
@@ -69,13 +63,14 @@ class UISlider(SceneObject):
     def _updateHandlePosition(self):
         ratio = self.bar.getFillRatio()
         travel = self.bar.width
-        centerX = self.bar.x + ratio * travel
+        centerX = self.bar.position.x + ratio * travel
         newX = round(centerX - self.handle.width / 2)
-        newY = round(self.bar.y + self.bar.height / 2 - self.handle.height / 2)
-        self.handle.setPosition(newX, newY)
+        newY = round(self.bar.position.y + self.bar.height / 2 - self.handle.height / 2)
+        self.handle.setPosition((newX, newY))
 
     def _setValueFromMouseX(self, mouseX):
-        ratio = (mouseX - self.bar.x) / self.bar.width
+        barRect = self.bar.getRect()
+        ratio = (mouseX - barRect.x) / self.bar.width
         ratio = max(0.0, min(1.0, ratio))
         self.bar.setValue(ratio * self.bar.maxValue)
         self._updateHandlePosition()
@@ -95,7 +90,7 @@ class UISlider(SceneObject):
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.handle.getRect().collidepoint(event.pos):
                 self.handle.dragging = True
-            elif pygame.Rect(self.bar.x, self.bar.y, self.bar.width, self.bar.height).collidepoint(event.pos):
+            elif self.bar.getRect().collidepoint(event.pos):
                 self._setValueFromMouseX(event.pos[0])
                 self.handle.dragging = True
 

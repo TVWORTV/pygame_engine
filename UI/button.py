@@ -13,7 +13,11 @@ class Button(SceneObject):
                  ):
         super().__init__()
 
-        self.rect = pygame.Rect(rect)
+        rect = pygame.Rect(rect)
+        self.setPosition(rect.topleft)
+        self.width = rect.width
+        self.height = rect.height
+
         self.text = text
         self.font = font
 
@@ -31,20 +35,26 @@ class Button(SceneObject):
         self.bgImage = None
         if self.normalImage is not None:
             self.bgImage = StaticImage(
-                self.normalImage, (self.rect.x, self.rect.y),
-                size=(self.rect.width, self.rect.height),
+                self.normalImage, (0, 0),
+                size=(self.width, self.height),
                 nineSliced=nineSliced, border=border
             )
             self.addChild(self.bgImage)
 
         textWidth, textHeight = self.font.size(self.text)
-        labelRect = pygame.Rect(0, 0, textWidth, textHeight)
-        labelRect.center = self.rect.center
+        localLabelPos = (
+            round((self.width - textWidth) / 2),
+            round((self.height - textHeight) / 2)
+        )
         self.labelText = StaticText(
-            self.text, self.font, labelRect.topleft,
+            self.text, self.font, localLabelPos,
             color=textColor if textColor is not None else Color()
         )
         self.addChild(self.labelText)
+
+    def getRect(self):
+        worldPos = self.getWorldPosition()
+        return pygame.Rect(worldPos.x, worldPos.y, self.width, self.height)
 
     def setSprite(self, sprite):
         self.bgImage.setImage(sprite)
@@ -55,21 +65,23 @@ class Button(SceneObject):
         self.on_click.append(event)
 
     def handle_event(self, event):
+        rect = self.getRect()
         if event.type == pygame.MOUSEMOTION:
             wasHovered = self.hovered
-            self.hovered = self.rect.collidepoint(event.pos)
+            self.hovered = rect.collidepoint(event.pos)
             if self.hovered != wasHovered and self.bgImage is not None and self.interactable:
                 nextImage = self.hoverImage if (self.hovered and self.hoverImage) else self.normalImage
                 self.bgImage.setImage(nextImage)
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.interactable:
-            if self.rect.collidepoint(event.pos):
+            if rect.collidepoint(event.pos):
                 for callback in self.on_click:
                     callback()
 
     def draw(self, screen):
         if self.bgImage is None:
+            rect = self.getRect()
             color = Color((180, 180, 180, 255)) if self.hovered and self.interactable else Color((120, 120, 120, 255))
-            pygame.draw.rect(screen, color.rgba, self.rect, border_radius=6)
+            pygame.draw.rect(screen, color.rgba, rect, border_radius=6)
 
         super().draw(screen)

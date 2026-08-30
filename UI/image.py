@@ -1,5 +1,6 @@
 import pygame
 from UI.nineSlicing import draw_nine_slice
+from UI.draw import blit_rotated
 from scenes.sceneObject import SceneObject
 from camera.camera import Camera
 from UI.color import *
@@ -17,8 +18,8 @@ class StaticImage(SceneObject):
                  drawOrder = 0 
                 ):
         super().__init__()
+        self.setPosition(pos)
         self.image = image
-        self.pos = pos
         self.size = size
         self.nineSliced = nineSliced
         self.border = border
@@ -57,9 +58,6 @@ class StaticImage(SceneObject):
         self.image = image
         self._rebuildCache()
 
-    def setPos(self, pos):
-        self.pos = pos
-
     def setSize(self, size):
         self.size = size
         self._rebuildCache()
@@ -80,21 +78,24 @@ class StaticImage(SceneObject):
         super().draw(screen)
 
     def _drawScreenSpace(self, screen):
+        worldPos = self.getWorldPosition()
+
         if self.nineSliced:
+            # Nine-sliced panels ignore rotation - see notes.
             w, h = self.size if self.size is not None else self._tintedImage.get_size()
-            draw_nine_slice(screen, self._tintedImage, (self.pos[0], self.pos[1], w, h), self.border)
-        elif self._cachedScaled is not None:
-            screen.blit(self._cachedScaled, self.pos)
+            draw_nine_slice(screen, self._tintedImage, (worldPos.x, worldPos.y, w, h), self.border)
         else:
-            screen.blit(self._tintedImage, self.pos)
+            surface = self._cachedScaled if self._cachedScaled is not None else self._tintedImage
+            blit_rotated(screen, surface, worldPos, self.getWorldRotation())
 
     def _drawWorldSpace(self, screen):
         camera = Camera.get_instance()
         if camera is None:
             return
 
+        worldPos = self.getWorldPosition()
         w, h = self.size if self.size is not None else self._tintedImage.get_size()
-        worldRect = pygame.Rect(self.pos[0], self.pos[1], w, h)
+        worldRect = pygame.Rect(worldPos.x, worldPos.y, w, h)
         screenRect = camera.apply(worldRect)
 
         if self.nineSliced:
@@ -106,4 +107,4 @@ class StaticImage(SceneObject):
             )
         else:
             scaled = pygame.transform.scale(self._tintedImage, (screenRect.width, screenRect.height))
-            screen.blit(scaled, (screenRect.x, screenRect.y))
+            blit_rotated(screen, scaled, pygame.math.Vector2(screenRect.topleft), self.getWorldRotation())
