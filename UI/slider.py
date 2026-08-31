@@ -19,6 +19,9 @@ class Handle(SceneObject):
             self.image = StaticImage(image, (0, 0), size=(self.width, self.height))
             self.addChild(self.image)
 
+    def getSize(self):
+        return (self.width, self.height)
+
     def getRect(self):
         worldPos = self.getWorldPosition()
         return pygame.Rect(worldPos.x, worldPos.y, self.width, self.height)
@@ -58,6 +61,9 @@ class UISlider(SceneObject):
         if self.onChange is not None:
             self.onChange(self.bar.currentValue)
 
+    def getSize(self):
+        return (self.bar.width, self.bar.height)
+    
 #region Value
 
     def _updateHandlePosition(self):

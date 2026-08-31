@@ -30,11 +30,6 @@ class StaticImage(SceneObject):
         self._tintedImage = None
         self._cachedScaled = None
         self._rebuildCache()
-            
-    def setDrawOrder(self, drawOrder):
-        self.drawOrder = drawOrder
-        if self.scene is not None:
-            self.scene.invalidateDrawOrder()
 
     def _rebuildCache(self):
         self._tintedImage = self._applyTint(self.image)
@@ -43,6 +38,8 @@ class StaticImage(SceneObject):
             self._cachedScaled = pygame.transform.scale(self._tintedImage, self.size)
         else:
             self._cachedScaled = None
+
+#region Visuals 
 
     def _applyTint(self, surface):
         if surface is None:
@@ -53,18 +50,38 @@ class StaticImage(SceneObject):
         tinted = surface.copy()
         tinted.fill(self.color.rgba, special_flags=pygame.BLEND_RGBA_MULT)
         return tinted
+            
+    def setDrawOrder(self, drawOrder):
+        self.drawOrder = drawOrder
+        if self.scene is not None:
+            self.scene.invalidateDrawOrder()
 
     def setImage(self, image):
         self.image = image
         self._rebuildCache()
 
+    def setColor(self, color):
+        self.color = color
+        self._rebuildCache()
+
+#endregion 
+
+#region Size 
+
     def setSize(self, size):
         self.size = size
         self._rebuildCache()
 
-    def setColor(self, color):
-        self.color = color
-        self._rebuildCache()
+    def getSize(self):
+        if self.size is not None:
+            return self.size
+        if self._tintedImage is not None:
+            return self._tintedImage.get_size()
+        return (0, 0)
+
+#endregion
+
+#region Draw methods 
 
     def draw(self, screen):
         if self.image is None:
@@ -108,3 +125,5 @@ class StaticImage(SceneObject):
         else:
             scaled = pygame.transform.scale(self._tintedImage, (screenRect.width, screenRect.height))
             blit_rotated(screen, scaled, pygame.math.Vector2(screenRect.topleft), self.getWorldRotation())
+#endregion
+

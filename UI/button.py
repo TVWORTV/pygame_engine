@@ -63,6 +63,9 @@ class Button(SceneObject):
         if overrideAll:
             self.on_click.clear()
         self.on_click.append(event)
+        
+    def getSize(self):
+        return (self.width, self.height)
 
     def handle_event(self, event):
         rect = self.getRect()

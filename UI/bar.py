@@ -32,6 +32,9 @@ class UIBar(SceneObject):
         )
         self.addChild(self.fillImage)
 
+    def getSize(self):
+        return (self.width, self.height)
+
 #region Background / sizing
 
     def getRect(self):

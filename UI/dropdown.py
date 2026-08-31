@@ -4,8 +4,8 @@
 
 class DropDownMenu:
 
-    def __init__(self, options):
+    def __init__(self, optionList, onlyOne = False):
         pass
 
-    def choose(self, index):
+    def choose_option(self):
         pass

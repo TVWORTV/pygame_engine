@@ -9,22 +9,51 @@ class SceneObject:
         self._sortedChildren = []
         self._drawOrderDirty = False
 
-        self.position = pygame.math.Vector2(0, 0)   # local, relative to parent
-        self.rotation = 0.0                            # local, degrees (+ = clockwise on screen)
+        self.position = pygame.math.Vector2(0, 0)   
+        self.rotation = 0.0                           
 
         self._worldPosition = pygame.math.Vector2(0, 0)
         self._worldRotation = 0.0
         self._worldDirty = True
+
+#region notification 
+
+    def onChildTransformChanged(self, child):
+        pass
+
+    def onChildSizeChanged(self, child):
+        pass
+
+    def _notifySizeChanged(self):
+        if self.parent is not None:
+            self.parent.onChildSizeChanged(self)
+
+    def _notifyPositionChanged(self):
+        if self.parent is not None:
+            self.parent.onChildTransformChanged(self) 
+
+#endregion 
+
+#region size 
+
+    def getSize(self):
+        return (0, 0)
+
+#endregion 
 
 #region Positioning
 
     def setPosition(self, pos):
         self.position = pygame.math.Vector2(pos)
         self._invalidateWorldTransform()
+        if self.parent is not None:
+            self.parent.onChildTransformChanged(self)
 
     def setRotation(self, rotation):
         self.rotation = rotation
         self._invalidateWorldTransform()
+        if self.parent is not None:
+            self.parent.onChildTransformChanged(self)
 
     def translate(self, delta):
         self.position += pygame.math.Vector2(delta)
