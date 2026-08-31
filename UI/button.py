@@ -59,6 +59,10 @@ class Button(SceneObject):
     def setSprite(self, sprite):
         self.bgImage.setImage(sprite)
 
+    def setText(self, text):
+        self.text = text
+        self.labelText.setText(text)
+
     def addEvent(self, event, overrideAll=False):
         if overrideAll:
             self.on_click.clear()
