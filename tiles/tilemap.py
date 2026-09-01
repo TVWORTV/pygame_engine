@@ -3,15 +3,8 @@ from scenes.sceneObject import *
 from camera.camera import *
 from tiles.ruleTile import *
 
-from dataclasses import dataclass
+from tiles.tile import *
 
-
-@dataclass
-class Tile:
-    tile_id: int
-
-    def get_sprite_id(self, tilemap, x, y):
-        return self.tile_id
 
 class Tilemap(SceneObject):
  
@@ -74,8 +67,12 @@ class Tilemap(SceneObject):
                 placed = row[tx]
                 if placed is None:
                     continue
-                sprite_id = placed.get_sprite_id(self, tx, ty)
-                sprite = self.tileset[sprite_id]
+                visual = placed.get_visual(self, tx, ty)
+                sprite = self.tileset[visual.sprite_id]
+                if visual.flip_h or visual.flip_v:
+                    sprite = pygame.transform.flip(sprite, visual.flip_h, visual.flip_v)
+                if visual.rotation:
+                    sprite = pygame.transform.rotate(sprite, -visual.rotation)
                 local_x = (tx - start_x) * self.tile_width
                 local_y = (ty - start_y) * self.tile_height
                 surface.blit(sprite, (local_x, local_y))
