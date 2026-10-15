@@ -1,19 +1,26 @@
-
-
 import pygame
 from scenes.sceneObject import SceneObject
 from camera.camera import Camera
-from UI.color import * 
+from UI.color import *
+from enum import Enum, auto
 
-class StaticText(SceneObject):
-    def __init__(self, text, font, pos, color=Color(), antialias=True, worldSpace=False, drawOrder = 0):
+class Alignment(Enum):
+    LEFT = auto()
+    RIGHT = auto()
+    CENTER = auto()
+
+class TextBox(SceneObject):
+    def __init__(self, text : str, font : pygame.font, rect, color : Color = Color(), antialias : bool = True, worldSpace : bool = False,
+                 drawOrder : int = 0, align : Alignment = Alignment.CENTER, lineSpacing : int =0):
         super().__init__()
         self.text = text
         self.font = font
-        self.pos = pos
+        self.rect = pygame.Rect(rect)
         self.color = color
         self.antialias = antialias
         self.worldSpace = worldSpace
+        self.align = align
+        self.lineSpacing = lineSpacing
 
         self.drawOrder = drawOrder
 
@@ -25,8 +32,68 @@ class StaticText(SceneObject):
         if self.scene is not None:
             self.scene.invalidateDrawOrder()
 
+    @property
+    def pos(self):
+        return self.rect.topleft
+
+    def _wrapParagraph(self, paragraph, maxWidth):
+        lines = []
+        current = ""
+        for word in paragraph.split(" "):
+            candidate = word if not current else current + " " + word
+            if self.font.size(candidate)[0] <= maxWidth:
+                current = candidate
+                continue
+
+            if current:
+                lines.append(current)
+                current = ""
+
+            if self.font.size(word)[0] <= maxWidth:
+                current = word
+                continue
+
+            for char in word:
+                candidate = current + char
+                if not current or self.font.size(candidate)[0] <= maxWidth:
+                    current = candidate
+                else:
+                    lines.append(current)
+                    current = char
+
+        lines.append(current)
+        return lines
+
+    def _wrapText(self):
+        lines = []
+        for paragraph in self.text.split("\n"):
+            lines.extend(self._wrapParagraph(paragraph, self.rect.width))
+        return lines
+
     def _rebuildCache(self):
-        self._cachedSurface = self.font.render(self.text, self.antialias, self.color.rgba)
+        width = max(1, self.rect.width)
+        height = max(1, self.rect.height)
+        surface = pygame.Surface((width, height), pygame.SRCALPHA)
+
+        lineHeight = self.font.get_linesize() + self.lineSpacing
+        y = 0
+        for line in self._wrapText():
+            if y + self.font.get_linesize() > height:
+                break
+
+            if line:
+                rendered = self.font.render(line, self.antialias, self.color.rgba)
+                if self.align == Alignment.CENTER:
+                    x = (width - rendered.get_width()) // 2
+                elif self.align == Alignment.RIGHT: 
+                    x = width - rendered.get_width()
+                else:
+                    x = 0
+                surface.blit(rendered, (x, y))
+
+            y += lineHeight
+
+        self._cachedSurface = surface
 
     def setText(self, text):
         self.text = text
@@ -40,11 +107,30 @@ class StaticText(SceneObject):
         self.font = font
         self._rebuildCache()
 
+    def setAlign(self, align):
+        self.align = align
+        self._rebuildCache()
+
+    def setLineSpacing(self, lineSpacing):
+        self.lineSpacing = lineSpacing
+        self._rebuildCache()
+
     def setPos(self, pos):
-        self.pos = pos
+        self.rect.topleft = pos
+
+    def setRect(self, rect):
+        self.rect = pygame.Rect(rect)
+        self._rebuildCache()
+
+    def setSize(self, size):
+        self.rect.size = size
+        self._rebuildCache()
 
     def getSize(self):
-        return self._cachedSurface.get_size()
+        return self.rect.size
+
+    def getVertices(self):
+        return [self.rect.topleft, self.rect.topright, self.rect.bottomright, self.rect.bottomleft]
 
     def draw(self, screen):
         if self._cachedSurface is None:
@@ -58,16 +144,14 @@ class StaticText(SceneObject):
         super().draw(screen)
 
     def _drawScreenSpace(self, screen):
-        screen.blit(self._cachedSurface, self.pos)
+        screen.blit(self._cachedSurface, self.rect.topleft)
 
     def _drawWorldSpace(self, screen):
         camera = Camera.get_instance()
         if camera is None:
             return
 
-        w, h = self._cachedSurface.get_size()
-        worldRect = pygame.Rect(self.pos[0], self.pos[1], w, h)
-        screenRect = camera.apply(worldRect)
+        screenRect = camera.apply(self.rect)
 
         scaled = pygame.transform.scale(self._cachedSurface, (screenRect.width, screenRect.height))
         screen.blit(scaled, (screenRect.x, screenRect.y))

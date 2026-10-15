@@ -98,7 +98,6 @@ class StaticImage(SceneObject):
         worldPos = self.getWorldPosition()
 
         if self.nineSliced:
-            # Nine-sliced panels ignore rotation - see notes.
             w, h = self.size if self.size is not None else self._tintedImage.get_size()
             draw_nine_slice(screen, self._tintedImage, (worldPos.x, worldPos.y, w, h), self.border)
         else:
