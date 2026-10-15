@@ -29,7 +29,7 @@ class DropDownMenu(SceneObject):
         self.isOpen = False
 
         self.headerButton = Button(
-            pygame.Rect(0, 0, buttonSize[0], buttonSize[1]),
+            (0, 0), buttonSize,
             self.headerLabel, font, self._toggleOpen,
             image=normalImage, hoverImage=hoverImage, textColor=textColor
         )
@@ -50,7 +50,7 @@ class DropDownMenu(SceneObject):
 
         for index, optionText in enumerate(self.optionList):
             btn = Button(
-                pygame.Rect(0, 0, self.buttonSize[0], self.buttonSize[1]),
+                (0, 0), self.buttonSize,
                 optionText, self.font,
                 lambda i=index: self.choose_option(i),
                 image=self.normalImage, hoverImage=self.hoverImage,

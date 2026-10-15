@@ -10,12 +10,13 @@ class Alignment(Enum):
     CENTER = auto()
 
 class TextBox(SceneObject):
-    def __init__(self, text : str, font : pygame.font, rect, color : Color = Color(), antialias : bool = True, worldSpace : bool = False,
+    def __init__(self, text : str, font : pygame.font, pos, size, color : Color = Color(), antialias : bool = True, worldSpace : bool = False,
                  drawOrder : int = 0, align : Alignment = Alignment.CENTER, lineSpacing : int =0):
         super().__init__()
+        self.setPosition(pos)
         self.text = text
         self.font = font
-        self.rect = pygame.Rect(rect)
+        self.size = tuple(size)
         self.color = color
         self.antialias = antialias
         self.worldSpace = worldSpace
@@ -31,10 +32,6 @@ class TextBox(SceneObject):
         self.drawOrder = drawOrder
         if self.scene is not None:
             self.scene.invalidateDrawOrder()
-
-    @property
-    def pos(self):
-        return self.rect.topleft
 
     def _wrapParagraph(self, paragraph, maxWidth):
         lines = []
@@ -67,12 +64,12 @@ class TextBox(SceneObject):
     def _wrapText(self):
         lines = []
         for paragraph in self.text.split("\n"):
-            lines.extend(self._wrapParagraph(paragraph, self.rect.width))
+            lines.extend(self._wrapParagraph(paragraph, self.size[0]))
         return lines
 
     def _rebuildCache(self):
-        width = max(1, self.rect.width)
-        height = max(1, self.rect.height)
+        width = max(1, self.size[0])
+        height = max(1, self.size[1])
         surface = pygame.Surface((width, height), pygame.SRCALPHA)
 
         lineHeight = self.font.get_linesize() + self.lineSpacing
@@ -115,22 +112,23 @@ class TextBox(SceneObject):
         self.lineSpacing = lineSpacing
         self._rebuildCache()
 
-    def setPos(self, pos):
-        self.rect.topleft = pos
-
-    def setRect(self, rect):
-        self.rect = pygame.Rect(rect)
-        self._rebuildCache()
-
     def setSize(self, size):
-        self.rect.size = size
+        self.size = tuple(size)
         self._rebuildCache()
+        self._notifySizeChanged()
 
     def getSize(self):
-        return self.rect.size
+        return self.size
 
     def getVertices(self):
-        return [self.rect.topleft, self.rect.topright, self.rect.bottomright, self.rect.bottomleft]
+        worldPos = self.getWorldPosition()
+        width, height = self.size
+        return [
+            (worldPos.x, worldPos.y),
+            (worldPos.x + width, worldPos.y),
+            (worldPos.x + width, worldPos.y + height),
+            (worldPos.x, worldPos.y + height),
+        ]
 
     def draw(self, screen):
         if self._cachedSurface is None:
@@ -144,14 +142,17 @@ class TextBox(SceneObject):
         super().draw(screen)
 
     def _drawScreenSpace(self, screen):
-        screen.blit(self._cachedSurface, self.rect.topleft)
+        worldPos = self.getWorldPosition()
+        screen.blit(self._cachedSurface, (worldPos.x, worldPos.y))
 
     def _drawWorldSpace(self, screen):
         camera = Camera.get_instance()
         if camera is None:
             return
 
-        screenRect = camera.apply(self.rect)
+        worldPos = self.getWorldPosition()
+        worldRect = pygame.Rect(worldPos.x, worldPos.y, self.size[0], self.size[1])
+        screenRect = camera.apply(worldRect)
 
         scaled = pygame.transform.scale(self._cachedSurface, (screenRect.width, screenRect.height))
         screen.blit(scaled, (screenRect.x, screenRect.y))

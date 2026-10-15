@@ -4,14 +4,13 @@ import pygame
 
 
 class UIBar(SceneObject):
-    def __init__(self, x, y, width, height, foregroundImage, border,
+    def __init__(self, pos, size, foregroundImage, border,
                  backgroundImage=None, bgNineSlicing=False,
                  currentValue=0.0, maxValue=1.0, worldSpace=False):
         super().__init__()
 
-        self.setPosition((x, y))
-        self.width = width
-        self.height = height
+        self.setPosition(pos)
+        self.size = tuple(size)
         self.border = border
         self.worldSpace = worldSpace
 
@@ -21,32 +20,32 @@ class UIBar(SceneObject):
         self.bgImage = None
         if backgroundImage is not None:
             self.bgImage = StaticImage(
-                backgroundImage, (0, 0), size=(self.width, self.height),
+                backgroundImage, (0, 0), size=self.size,
                 nineSliced=bgNineSlicing, border=self.border
             )
             self.addChild(self.bgImage)
 
         self.fillImage = StaticImage(
-            foregroundImage, (0, 0), size=(self.width, self.height),
+            foregroundImage, (0, 0), size=self.size,
             nineSliced=True, border=self.border
         )
         self.addChild(self.fillImage)
 
     def getSize(self):
-        return (self.width, self.height)
+        return self.size
 
 #region Background / sizing
 
     def getRect(self):
         worldPos = self.getWorldPosition()
-        return pygame.Rect(worldPos.x, worldPos.y, self.width, self.height)
+        return pygame.Rect(worldPos.x, worldPos.y, self.size[0], self.size[1])
 
-    def setSize(self, width, height):
-        self.width = width
-        self.height = height
+    def setSize(self, size):
+        self.size = tuple(size)
         if self.bgImage is not None:
-            self.bgImage.setSize((width, height))
-        self.fillImage.setSize((width, height))
+            self.bgImage.setSize(self.size)
+        self.fillImage.setSize(self.size)
+        self._notifySizeChanged()
 
 #endregion
 
@@ -70,7 +69,7 @@ class UIBar(SceneObject):
             self.bgImage.draw(screen)
 
         ratio = self.getFillRatio()
-        fillWidth = round(self.width * ratio)
+        fillWidth = round(self.size[0] * ratio)
         if fillWidth <= 0:
             return
 

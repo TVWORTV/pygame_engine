@@ -71,6 +71,7 @@ class StaticImage(SceneObject):
     def setSize(self, size):
         self.size = size
         self._rebuildCache()
+        self._notifySizeChanged()
 
     def getSize(self):
         if self.size is not None:

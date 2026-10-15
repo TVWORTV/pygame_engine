@@ -5,26 +5,25 @@ from UI.bar import UIBar
 
 
 class Handle(SceneObject):
-    def __init__(self, image, width, height, worldSpace=False):
+    def __init__(self, image, size, worldSpace=False):
         super().__init__()
 
-        self.width = width
-        self.height = height
+        self.size = tuple(size)
         self.dragging = False
         self.hovered = False
         self.worldSpace = worldSpace
 
         self.image = None
         if image is not None:
-            self.image = StaticImage(image, (0, 0), size=(self.width, self.height))
+            self.image = StaticImage(image, (0, 0), size=self.size)
             self.addChild(self.image)
 
     def getSize(self):
-        return (self.width, self.height)
+        return self.size
 
     def getRect(self):
         worldPos = self.getWorldPosition()
-        return pygame.Rect(worldPos.x, worldPos.y, self.width, self.height)
+        return pygame.Rect(worldPos.x, worldPos.y, self.size[0], self.size[1])
 
     def draw(self, screen):
         if self.image is None:
@@ -35,23 +34,23 @@ class Handle(SceneObject):
 
 
 class UISlider(SceneObject):
-    def __init__(self, x, y, width, height, foregroundImage, border,
-                 handleImage=None, handleWidth=16, handleHeight=None,
+    def __init__(self, pos, size, foregroundImage, border,
+                 handleImage=None, handleSize=None,
                  backgroundImage=None, bgNineSlicing=False,
                  currentValue=0.0, maxValue=1.0, onChange=None, worldSpace=False):
         super().__init__()
-        self.setPosition((x, y))
+        self.setPosition(pos)
 
         self.bar = UIBar(
-            0, 0, width, height, foregroundImage, border,
+            (0, 0), size, foregroundImage, border,
             backgroundImage=backgroundImage, bgNineSlicing=bgNineSlicing,
             currentValue=currentValue, maxValue=maxValue
         )
 
-        if handleHeight is None:
-            handleHeight = height
+        if handleSize is None:
+            handleSize = (16, size[1])
 
-        self.handle = Handle(handleImage, handleWidth, handleHeight)
+        self.handle = Handle(handleImage, handleSize)
         self.onChange = onChange
 
         self.addChild(self.bar)
@@ -62,21 +61,23 @@ class UISlider(SceneObject):
             self.onChange(self.bar.currentValue)
 
     def getSize(self):
-        return (self.bar.width, self.bar.height)
-    
+        return self.bar.getSize()
+
 #region Value
 
     def _updateHandlePosition(self):
         ratio = self.bar.getFillRatio()
-        travel = self.bar.width
+        travel = self.bar.getSize()[0]
         centerX = self.bar.position.x + ratio * travel
-        newX = round(centerX - self.handle.width / 2)
-        newY = round(self.bar.position.y + self.bar.height / 2 - self.handle.height / 2)
+        barWidth, barHeight = self.bar.getSize()
+        handleWidth, handleHeight = self.handle.getSize()
+        newX = round(centerX - handleWidth / 2)
+        newY = round(self.bar.position.y + barHeight / 2 - handleHeight / 2)
         self.handle.setPosition((newX, newY))
 
     def _setValueFromMouseX(self, mouseX):
         barRect = self.bar.getRect()
-        ratio = (mouseX - barRect.x) / self.bar.width
+        ratio = (mouseX - barRect.x) / barRect.width
         ratio = max(0.0, min(1.0, ratio))
         self.bar.setValue(ratio * self.bar.maxValue)
         self._updateHandlePosition()

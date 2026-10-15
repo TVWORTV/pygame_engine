@@ -1,4 +1,3 @@
-
 #region Import
 
 import pygame
@@ -14,6 +13,9 @@ from tiles.tile import *
 from tiles.ruleTile import *
 
 from camera.camera import *
+
+from UI.color import *
+from UI.text import *
 
 #endregion
 
@@ -33,6 +35,8 @@ FPS = 60
 Camera(*screen.get_size())
 
 TILE_SIZE = 32
+
+debug_rects = []
 
 
 def build_placeholder_tileset():
@@ -101,6 +105,52 @@ def place_horizontal_pair(tilemap, rule_tile, center_x, center_y):
     tilemap.set_tile(center_x - 1, center_y, rule_tile)
     tilemap.set_tile(center_x + 1, center_y, rule_tile)
 
+
+def build_text_boxes(scene):
+    font = pygame.font.Font(None, 24)
+    small_font = pygame.font.Font(None, 20)
+
+    sw, sh = screen.get_size()
+    margin = 20
+    gap = 20
+    box_w = (sw - 2 * margin - 2 * gap) // 3
+    box_h = 130
+    top_y = margin
+    bottom_y = sh - margin - box_h
+
+    column_x = [margin + i * (box_w + gap) for i in range(3)]
+
+    lorem = (
+        "The quick brown fox jumps over the lazy dog. "
+        "This sentence is long enough that it has to wrap onto several rows."
+    )
+
+    boxes = [
+        TextBox(lorem, font, (column_x[0], top_y, box_w, box_h),
+                color=Color((255, 255, 255, 255)), align=Alignment.LEFT),
+        TextBox(lorem, font, (column_x[1], top_y, box_w, box_h),
+                color=Color((255, 220, 120, 255)), align=Alignment.CENTER),
+        TextBox(lorem, font, (column_x[2], top_y, box_w, box_h),
+                color=Color((120, 220, 255, 255)), align=Alignment.RIGHT),
+
+        TextBox("Explicit\nnewlines\n\nwork too, plus a verylongwordthatcannotpossiblyfitononeline "
+                "gets broken across rows.",
+                font, (column_x[0], bottom_y, box_w, box_h),
+                color=Color((200, 255, 200, 255))),
+        TextBox(lorem + " " + lorem + " " + lorem,
+                small_font, (column_x[1], bottom_y, box_w, 60),
+                color=Color((255, 160, 160, 255)), lineSpacing=4),
+        TextBox("World space box, drawn through the camera and scaled with it.",
+                font, (column_x[2], bottom_y, box_w, box_h),
+                color=Color((255, 255, 255, 255)), worldSpace=True),
+    ]
+
+    for box in boxes:
+        scene.addobj(box)
+        debug_rects.append(box.rect.copy())
+
+    scene.textBoxes = boxes
+
 #endregion
 
 #region Scenes
@@ -131,6 +181,8 @@ class TestScene(Scene):
 
         self.addobj(self.tilemap)
 
+        build_text_boxes(self)
+
 
 sceneManager = SceneManager(
     scene_classes={
@@ -158,6 +210,9 @@ async def main():
         sceneManager.handle_events(events)
         sceneManager.update(dt)
         sceneManager.draw(screen)
+
+        for rect in debug_rects:
+            pygame.draw.rect(screen, (90, 90, 120), rect, 1)
 
         pygame.display.flip()
         await asyncio.sleep(0)

@@ -1,22 +1,20 @@
 import pygame
 from scenes.sceneObject import SceneObject
 from UI.image import StaticImage
-from UI.text import StaticText
+from UI.text import TextBox
 from UI.color import *
 
 
 class Button(SceneObject):
-    def __init__(self, rect, text, font, on_click,
+    def __init__(self, pos, size, text, font, on_click,
                  image=None, hoverImage=None, nineSliced=False, border=0,
                  textColor=None, worldSpace=False,
                  interactable=True
                  ):
         super().__init__()
 
-        rect = pygame.Rect(rect)
-        self.setPosition(rect.topleft)
-        self.width = rect.width
-        self.height = rect.height
+        self.setPosition(pos)
+        self.size = tuple(size)
 
         self.text = text
         self.font = font
@@ -36,25 +34,33 @@ class Button(SceneObject):
         if self.normalImage is not None:
             self.bgImage = StaticImage(
                 self.normalImage, (0, 0),
-                size=(self.width, self.height),
+                size=self.size,
                 nineSliced=nineSliced, border=border
             )
             self.addChild(self.bgImage)
 
-        textWidth, textHeight = self.font.size(self.text)
-        localLabelPos = (
-            round((self.width - textWidth) / 2),
-            round((self.height - textHeight) / 2)
-        )
-        self.labelText = StaticText(
-            self.text, self.font, localLabelPos,
+        self.labelText = TextBox(
+            self.text, self.font, (0, 0), self._labelSize(),
             color=textColor if textColor is not None else Color()
         )
         self.addChild(self.labelText)
+        self._centerLabel()
+
+    def _labelSize(self):
+        textWidth, textHeight = self.font.size(self.text)
+        return (textWidth, max(textHeight, self.font.get_linesize()))
+
+    def _centerLabel(self):
+        textWidth, textHeight = self.font.size(self.text)
+        self.labelText.setSize(self._labelSize())
+        self.labelText.setPosition((
+            round((self.size[0] - textWidth) / 2),
+            round((self.size[1] - textHeight) / 2)
+        ))
 
     def getRect(self):
         worldPos = self.getWorldPosition()
-        return pygame.Rect(worldPos.x, worldPos.y, self.width, self.height)
+        return pygame.Rect(worldPos.x, worldPos.y, self.size[0], self.size[1])
 
     def setSprite(self, sprite):
         self.bgImage.setImage(sprite)
@@ -62,14 +68,22 @@ class Button(SceneObject):
     def setText(self, text):
         self.text = text
         self.labelText.setText(text)
+        self._centerLabel()
 
     def addEvent(self, event, overrideAll=False):
         if overrideAll:
             self.on_click.clear()
         self.on_click.append(event)
         
+    def setSize(self, size):
+        self.size = tuple(size)
+        if self.bgImage is not None:
+            self.bgImage.setSize(self.size)
+        self._centerLabel()
+        self._notifySizeChanged()
+
     def getSize(self):
-        return (self.width, self.height)
+        return self.size
 
     def handle_event(self, event):
         rect = self.getRect()
