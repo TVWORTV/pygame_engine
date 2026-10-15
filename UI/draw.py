@@ -9,6 +9,6 @@ def blit_rotated(screen, surface, topleft, rotation):
         return
 
     rect = surface.get_rect(topleft=topleft)
-    rotated = pygame.transform.rotate(surface, -rotation)  # negated: see note below
+    rotated = pygame.transform.rotate(surface, -rotation)  
     rotatedRect = rotated.get_rect(center=rect.center)
     screen.blit(rotated, rotatedRect.topleft)
