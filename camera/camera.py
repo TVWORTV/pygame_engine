@@ -1,5 +1,5 @@
 import pygame
-from general.singleton import *
+from ..general.singleton import *
 
 class Camera(Singleton):
 

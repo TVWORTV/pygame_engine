@@ -1,5 +1,5 @@
-from scenes.sceneObject import SceneObject
-from UI.image import StaticImage
+from ..scenes.sceneObject import SceneObject
+from .image import StaticImage
 import pygame
 
 

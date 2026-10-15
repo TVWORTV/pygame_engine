@@ -1,7 +1,7 @@
 import pygame
-from scenes.sceneObject import SceneObject
-from UI.image import StaticImage
-from UI.bar import UIBar
+from ..scenes.sceneObject import SceneObject
+from .image import StaticImage
+from .bar import UIBar
 
 
 class Handle(SceneObject):

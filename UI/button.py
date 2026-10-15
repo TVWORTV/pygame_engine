@@ -1,8 +1,8 @@
 import pygame
-from scenes.sceneObject import SceneObject
-from UI.image import StaticImage
-from UI.text import TextBox
-from UI.color import *
+from ..scenes.sceneObject import SceneObject
+from .image import StaticImage
+from .text import TextBox
+from .color import *
 
 
 class Button(SceneObject):

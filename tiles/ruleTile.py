@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum, IntFlag, auto
 
-from tiles.tile import *
+from .tile import *
 
 
 class NeighborCondition(Enum):

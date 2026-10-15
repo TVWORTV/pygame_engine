@@ -1,7 +1,7 @@
 import pygame
-from scenes.sceneObject import SceneObject
-from UI.button import Button
-from UI.layoutGroup import LayoutGroup, LayoutType
+from ..scenes.sceneObject import SceneObject
+from .button import Button
+from .layoutGroup import LayoutGroup, LayoutType
 
 
 class DropDownMenu(SceneObject):

@@ -1,9 +1,9 @@
 import pygame
-from UI.nineSlicing import draw_nine_slice
-from UI.draw import blit_rotated
-from scenes.sceneObject import SceneObject
-from camera.camera import Camera
-from UI.color import *
+from .nineSlicing import draw_nine_slice
+from .draw import blit_rotated
+from ..scenes.sceneObject import SceneObject
+from ..camera.camera import Camera
+from .color import *
 
 
 class StaticImage(SceneObject):

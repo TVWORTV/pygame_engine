@@ -4,18 +4,18 @@ import pygame
 import asyncio
 
 
-from scenes.scene import *
+from .scenes.scene import *
 
-from constants.consts import *
+from .constants.consts import *
 
-from tiles.tilemap import *
-from tiles.tile import *
-from tiles.ruleTile import *
+from .tiles.tilemap import *
+from .tiles.tile import *
+from .tiles.ruleTile import *
 
-from camera.camera import *
+from .camera.camera import *
 
-from UI.color import *
-from UI.text import *
+from .UI.color import *
+from .UI.text import *
 
 #endregion
 

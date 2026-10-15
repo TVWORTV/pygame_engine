@@ -1,9 +1,9 @@
 import pygame
-from scenes.sceneObject import *
-from camera.camera import *
-from tiles.ruleTile import *
+from ..scenes.sceneObject import *
+from ..camera.camera import *
+from .ruleTile import *
 
-from tiles.tile import *
+from .tile import *
 
 
 class Tilemap(SceneObject):

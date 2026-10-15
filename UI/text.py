@@ -1,7 +1,7 @@
 import pygame
-from scenes.sceneObject import SceneObject
-from camera.camera import Camera
-from UI.color import *
+from ..scenes.sceneObject import SceneObject
+from ..camera.camera import Camera
+from .color import *
 from enum import Enum, auto
 
 class Alignment(Enum):

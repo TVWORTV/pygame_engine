@@ -1,6 +1,6 @@
 import pygame
 from enum import Enum
-from scenes.sceneObject import SceneObject
+from ..scenes.sceneObject import SceneObject
 
 
 class LayoutType(Enum):
