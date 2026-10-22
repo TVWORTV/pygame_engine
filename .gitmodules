@@ -1,0 +1,3 @@
+[submodule "tile_editor"]
+	path = tile_editor
+	url = https://github.com/TVWORTV/pygame_tile_editor.git

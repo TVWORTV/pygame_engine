@@ -12,8 +12,6 @@
         "**/Thumbs.db": true,
 
         "**/*.egg-info": true,
-        "**/build": true,
-        "**/dist": true,
         
         "**/*.gitignore": true,
 
